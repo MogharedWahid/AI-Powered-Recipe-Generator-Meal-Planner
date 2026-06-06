@@ -2,10 +2,14 @@
   box-sizing: border-box;
 }
 
+html {
+  background: #f6f4ef;
+}
+
 body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
-  background: #f7f4ef;
+  background: #f6f4ef;
   color: #1f2933;
 }
 
@@ -19,8 +23,8 @@ select {
 button {
   border: none;
   background: #1f7a4d;
-  color: white;
-  padding: 0.8rem 1rem;
+  color: #ffffff;
+  padding: 0.85rem 1rem;
   border-radius: 10px;
   cursor: pointer;
   font-weight: 700;
@@ -41,69 +45,108 @@ button:disabled {
   padding: 24px;
 }
 
+/* Header */
 .hero {
   background: linear-gradient(135deg, #1f7a4d, #2f9e67);
-  color: white;
+  color: #ffffff;
   border-radius: 24px;
-  padding: 42px;
+  padding: 42px 48px;
   margin-bottom: 24px;
+  text-align: left;
 }
 
 .eyebrow {
+  margin: 0 0 12px 0;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  font-size: 0.85rem;
+  font-weight: 700;
   opacity: 0.9;
 }
 
 h1 {
   margin: 0;
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  line-height: 1.05;
+  font-weight: 800;
+  color: #ffffff;
+  max-width: 900px;
 }
 
 .subtitle {
-  max-width: 720px;
-  font-size: 1.1rem;
+  margin: 18px 0 0 0;
+  max-width: 760px;
+  font-size: 1.15rem;
   line-height: 1.6;
+  color: #ffffff;
 }
 
+/* Layout */
 .layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  gap: 24px;
+  align-items: start;
 }
 
 .panel,
 .section {
-  background: white;
+  background: #ffffff;
   border-radius: 20px;
-  padding: 24px;
-  margin-bottom: 20px;
+  padding: 28px;
+  margin-bottom: 24px;
   box-shadow: 0 12px 30px rgba(31, 41, 51, 0.08);
+}
+
+.panel h2,
+.section h2 {
+  margin: 0 0 22px 0;
+  color: #1f2933;
+  opacity: 1;
+  font-size: 1.55rem;
+  font-weight: 800;
 }
 
 .form {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
 label {
   display: grid;
   gap: 8px;
   font-weight: 700;
+  color: #111827;
 }
 
 input,
 textarea,
 select {
-  border: 1px solid #d5d9df;
+  width: 100%;
+  border: 1px solid #d1d5db;
   border-radius: 10px;
-  padding: 0.8rem;
-  background: white;
+  padding: 0.9rem;
+  background: #ffffff;
+  color: #111827;
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #1f7a4d;
+  box-shadow: 0 0 0 3px rgba(31, 122, 77, 0.15);
 }
 
 textarea {
   resize: vertical;
+  min-height: 110px;
 }
 
 .message {
@@ -112,8 +155,10 @@ textarea {
   color: #17623d;
   padding: 12px;
   border-radius: 10px;
+  font-weight: 600;
 }
 
+/* Stats */
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -121,20 +166,25 @@ textarea {
 }
 
 .stats-grid div {
-  background: #f7f4ef;
-  padding: 16px;
+  background: #f6f4ef;
+  padding: 18px;
   border-radius: 16px;
+  text-align: center;
 }
 
 .stats-grid strong {
   display: block;
   font-size: 2rem;
+  color: #111827;
 }
 
 .stats-grid span {
-  color: #52616b;
+  display: block;
+  margin-top: 6px;
+  color: #4b5563;
 }
 
+/* Sections and cards */
 .section-title {
   display: flex;
   justify-content: space-between;
@@ -152,15 +202,19 @@ textarea {
   border: 1px solid #e5e7eb;
   border-radius: 18px;
   padding: 18px;
-  background: #fff;
+  background: #ffffff;
+  color: #1f2933;
 }
 
 .card h3 {
-  margin-top: 12px;
+  margin: 12px 0;
+  color: #111827;
+  font-size: 1.2rem;
 }
 
 .card p {
   line-height: 1.55;
+  color: #374151;
 }
 
 .badge {
@@ -177,10 +231,11 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .source {
-  color: #697883;
+  color: #6b7280;
   font-size: 0.85rem;
 }
 
@@ -209,9 +264,11 @@ textarea {
 }
 
 .empty {
-  color: #697883;
+  color: #6b7280;
+  margin: 0;
 }
 
+/* Responsive */
 @media (max-width: 900px) {
   .layout,
   .cards {
@@ -219,6 +276,38 @@ textarea {
   }
 
   .hero {
-    padding: 28px;
+    padding: 32px 28px;
+  }
+
+  h1 {
+    font-size: 2.4rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .app {
+    padding: 14px;
+  }
+
+  .hero {
+    border-radius: 18px;
+    padding: 28px 22px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .panel,
+  .section {
+    padding: 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
 }
