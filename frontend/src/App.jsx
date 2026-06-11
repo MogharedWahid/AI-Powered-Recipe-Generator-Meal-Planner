@@ -3,17 +3,30 @@ import "./App.css";
 
 const API_BASE_URL = "http://localhost:8000";
 
+function formatInstructions(instructions) {
+  if (!instructions) {
+    return [];
+  }
+
+  if (/\d+\.\s/.test(instructions)) {
+    return instructions
+      .split(/(?=\d+\.\s)/g)
+      .map((step) => step.replace(/^\d+\.\s*/, "").trim())
+      .filter(Boolean);
+  }
+
+  return instructions
+    .split(/(?<=[.!?])\s+/g)
+    .map((step) => step.trim())
+    .filter(Boolean);
+}
+
 function App() {
   const [ingredientsText, setIngredientsText] = useState("tomato, cheese, bread");
-  const [dietaryPreferences, setDietaryPreferences] = useState("vegetarian");
-  const [mealPlanDays, setMealPlanDays] = useState(1);
-
   const [generatedRecipes, setGeneratedRecipes] = useState([]);
   const [generatedSource, setGeneratedSource] = useState("");
-
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [stats, setStats] = useState(null);
-
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -22,28 +35,19 @@ function App() {
     .map((item) => item.trim())
     .filter(Boolean);
 
-  async function fetchSavedRecipes() {
-    const response = await fetch(`${API_BASE_URL}/api/recipes`);
-    const data = await response.json();
-    setSavedRecipes(data);
-  }
-
-  async function fetchStats() {
-    const response = await fetch(`${API_BASE_URL}/api/stats`);
-    const data = await response.json();
-    setStats(data);
-  }
-
   async function refreshData() {
-    await fetchSavedRecipes();
-    await fetchStats();
+    const recipesResponse = await fetch(`${API_BASE_URL}/api/recipes`);
+    const statsResponse = await fetch(`${API_BASE_URL}/api/stats`);
+
+    setSavedRecipes(await recipesResponse.json());
+    setStats(await statsResponse.json());
   }
 
   useEffect(() => {
     refreshData();
   }, []);
 
-  async function handleGenerateRecipes(event) {
+  async function generateRecipes(event) {
     event.preventDefault();
     setMessage("");
 
@@ -60,11 +64,7 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ingredients,
-          dietary_preferences: dietaryPreferences,
-          meal_plan_days: Number(mealPlanDays),
-        }),
+        body: JSON.stringify({ ingredients }),
       });
 
       if (!response.ok) {
@@ -81,99 +81,77 @@ function App() {
     }
   }
 
-  async function handleSaveRecipe(recipe) {
-    setMessage("");
+  async function saveRecipe(recipe) {
+    await fetch(`${API_BASE_URL}/api/recipes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: recipe.title,
+        ingredients,
+        dietary_preferences: "",
+        instructions: recipe.instructions,
+        meal_type: recipe.meal_type,
+        source: generatedSource || "manual",
+      }),
+    });
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/recipes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: recipe.title,
-          ingredients,
-          dietary_preferences: dietaryPreferences,
-          instructions: recipe.instructions,
-          meal_type: recipe.meal_type,
-          source: generatedSource || "manual",
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save recipe.");
-      }
-
-      await refreshData();
-      setMessage("Recipe saved successfully.");
-    } catch (error) {
-      setMessage(error.message);
-    }
+    setMessage("Recipe saved successfully.");
+    refreshData();
   }
 
-  async function handleDeleteRecipe(recipeId) {
-    setMessage("");
+  async function deleteRecipe(recipeId) {
+    await fetch(`${API_BASE_URL}/api/recipes/${recipeId}`, {
+      method: "DELETE",
+    });
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/recipes/${recipeId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete recipe.");
-      }
-
-      await refreshData();
-      setMessage("Recipe deleted successfully.");
-    } catch (error) {
-      setMessage(error.message);
-    }
+    setMessage("Recipe deleted successfully.");
+    refreshData();
   }
 
-  async function handleFeedback(recipeId, rating, feedback) {
-    setMessage("");
+  async function saveFeedback(recipeId, rating, feedback) {
+    await fetch(`${API_BASE_URL}/api/recipes/${recipeId}/feedback`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        rating: rating ? Number(rating) : null,
+        feedback,
+      }),
+    });
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/recipes/${recipeId}/feedback`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          rating: rating ? Number(rating) : null,
-          feedback,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update feedback.");
-      }
-
-      await refreshData();
-      setMessage("Feedback updated successfully.");
-    } catch (error) {
-      setMessage(error.message);
-    }
+    setMessage("Feedback saved successfully.");
+    refreshData();
   }
 
   return (
     <div className="app">
       <header className="hero">
-        <div>
-          <p className="eyebrow">AI-Powered Recipe Generator</p>
-          <h1>Recipe Generator & Meal Planner</h1>
-          <p className="subtitle">
-            Enter ingredients or dietary preferences, generate practical recipe ideas,
-            then save and rate your favorite meals.
-          </p>
+        <div className="hero-icon">👨‍🍳</div>
+
+        <h1>
+          Recipe Generator
+          <br />
+          &amp; Meal Planner
+        </h1>
+
+        <div className="hero-divider"></div>
+
+        <div className="hero-features">
+          <span>🌿 Enter Ingredients</span>
+          <span>✨ Generate Recipes</span>
+          <span>🔖 Save Favorites</span>
+          <span>☆ Rate & Review</span>
         </div>
       </header>
 
       <main className="layout">
         <section className="panel">
-          <h2>Generate recipes</h2>
+          <h2>Generate Recipes</h2>
 
-          <form onSubmit={handleGenerateRecipes} className="form">
+          <form onSubmit={generateRecipes} className="form">
             <label>
               Ingredients
               <textarea
@@ -181,26 +159,6 @@ function App() {
                 onChange={(event) => setIngredientsText(event.target.value)}
                 placeholder="Example: tomato, cheese, bread"
                 rows="4"
-              />
-            </label>
-
-            <label>
-              Dietary preferences
-              <input
-                value={dietaryPreferences}
-                onChange={(event) => setDietaryPreferences(event.target.value)}
-                placeholder="Example: vegetarian, high protein, gluten free"
-              />
-            </label>
-
-            <label>
-              Meal plan days
-              <input
-                type="number"
-                min="1"
-                max="7"
-                value={mealPlanDays}
-                onChange={(event) => setMealPlanDays(event.target.value)}
               />
             </label>
 
@@ -222,27 +180,19 @@ function App() {
                 <span>Total saved</span>
               </div>
               <div>
-                <strong>{stats.ai_generated_recipes}</strong>
-                <span>Generated</span>
-              </div>
-              <div>
-                <strong>{stats.manually_saved_recipes}</strong>
-                <span>Manual</span>
-              </div>
-              <div>
                 <strong>{stats.average_rating ?? "N/A"}</strong>
                 <span>Avg rating</span>
               </div>
             </div>
           ) : (
-            <p>Loading stats...</p>
+            <p className="empty">Loading stats...</p>
           )}
         </section>
       </main>
 
       <section className="section">
         <div className="section-title">
-          <h2>Generated recipes</h2>
+          <h2>Generated Recipes</h2>
           {generatedSource && <span className="badge">Source: {generatedSource}</span>}
         </div>
 
@@ -254,8 +204,14 @@ function App() {
               <article className="card" key={`${recipe.title}-${index}`}>
                 <span className="badge">{recipe.meal_type}</span>
                 <h3>{recipe.title}</h3>
-                <p>{recipe.instructions}</p>
-                <button onClick={() => handleSaveRecipe(recipe)}>Save Recipe</button>
+
+                <ol className="recipe-steps">
+                  {formatInstructions(recipe.instructions).map((step, stepIndex) => (
+                    <li key={stepIndex}>{step}</li>
+                  ))}
+                </ol>
+
+                <button onClick={() => saveRecipe(recipe)}>Save Recipe</button>
               </article>
             ))}
           </div>
@@ -263,7 +219,7 @@ function App() {
       </section>
 
       <section className="section">
-        <h2>Saved recipes</h2>
+        <h2>Saved Recipes</h2>
 
         {savedRecipes.length === 0 ? (
           <p className="empty">No saved recipes yet.</p>
@@ -273,8 +229,8 @@ function App() {
               <SavedRecipeCard
                 key={recipe.id}
                 recipe={recipe}
-                onDelete={handleDeleteRecipe}
-                onFeedback={handleFeedback}
+                onDelete={deleteRecipe}
+                onFeedback={saveFeedback}
               />
             ))}
           </div>
@@ -289,7 +245,7 @@ function SavedRecipeCard({ recipe, onDelete, onFeedback }) {
   const [feedback, setFeedback] = useState(recipe.feedback || "");
 
   return (
-    <article className="card saved-card">
+    <article className="card">
       <div className="card-top">
         <span className="badge">{recipe.meal_type}</span>
         <span className="source">{recipe.source}</span>
@@ -301,7 +257,11 @@ function SavedRecipeCard({ recipe, onDelete, onFeedback }) {
         <strong>Ingredients:</strong> {recipe.ingredients.join(", ")}
       </p>
 
-      <p>{recipe.instructions}</p>
+      <ol className="recipe-steps">
+        {formatInstructions(recipe.instructions).map((step, index) => (
+          <li key={index}>{step}</li>
+        ))}
+      </ol>
 
       <div className="feedback-box">
         <label>
