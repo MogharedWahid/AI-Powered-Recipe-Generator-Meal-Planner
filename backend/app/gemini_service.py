@@ -32,14 +32,16 @@ def _fallback_recipes(
             ),
         ),
         GeneratedRecipe(
-            title=f"{meal_plan_days}-Day Practical Meal Idea",
-            meal_type="meal plan",
+            title=f"Warm {ingredients[0].title()} Toast",
+            meal_type="dinner",
             instructions=(
-                f"Create a simple {meal_plan_days}-day plan using {ingredients_text}. "
-                f"Dietary preference: {dietary_preferences or 'none'}. Rotate the same "
-                "ingredients across breakfast, lunch, and dinner to reduce waste."
+                f"1. Prepare the ingredients: {ingredients_text}. "
+                "2. Toast the bread until lightly crispy. "
+                f"3. Add {ingredients[0]} and the remaining ingredients on top. "
+                "4. Heat in a pan or oven for a few minutes until warm. "
+                "5. Serve immediately with simple seasoning."
             ),
-        ),
+        )
     ]
 
 
@@ -87,9 +89,9 @@ def generate_recipes_with_gemini(
         client = genai.Client(api_key=api_key)
 
         prompt = f"""
-You are an AI-powered recipe generator and meal planner.
+You are an AI-powered recipe generator.
 
-Generate 3 practical recipes or meal plan ideas.
+Generate 3 practical recipes using the user's ingredients.
 
 Input ingredients:
 {ingredients}
@@ -100,9 +102,17 @@ Dietary preferences:
 Meal plan days:
 {meal_plan_days}
 
+Important recipe style:
+- Prefer common, familiar, real-world recipes.
+- Use recipe names that people would normally recognize.
+- Do not invent strange, unusual, or overly creative recipe names.
+- If the ingredients match a known dish, use the known dish name.
+- Keep the recipes simple and practical for home cooking.
+- Avoid fancy restaurant-style recipes unless clearly appropriate.
+
 Rules:
 - Use the provided ingredients as much as possible.
-- Keep instructions practical and easy to follow.
+- Keep instructions clear and easy to follow.
 - Respect dietary preferences.
 - Return valid JSON only.
 - Do not include markdown.
@@ -112,9 +122,9 @@ Required JSON format:
 {{
   "recipes": [
     {{
-      "title": "Recipe title",
-      "meal_type": "breakfast/lunch/dinner/snack/meal plan",
-      "instructions": "Step-by-step cooking instructions"
+      "title": "Common recipe title",
+      "meal_type": "breakfast/lunch/dinner/snack",
+      "instructions": "1. First step. 2. Second step. 3. Third step."
     }}
   ]
 }}
@@ -141,5 +151,6 @@ Required JSON format:
 
         return recipes, "gemini"
 
-    except Exception:
+    except Exception as exc:
+        print(f"Gemini generation failed: {type(exc).__name__}: {exc}", flush=True)
         return _fallback_recipes(ingredients, dietary_preferences, meal_plan_days), "fallback"

@@ -54,6 +54,4 @@ class RecipeOut(BaseModel):
 
 class StatsOut(BaseModel):
     total_saved_recipes: int
-    ai_generated_recipes: int
-    manually_saved_recipes: int
     average_rating: Optional[float]

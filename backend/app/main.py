@@ -144,24 +144,9 @@ def update_recipe_feedback(
 @app.get("/api/stats", response_model=StatsOut)
 def get_stats(db: Session = Depends(get_db)):
     total_saved_recipes = db.query(Recipe).count()
-
-    ai_generated_recipes = (
-        db.query(Recipe)
-        .filter(Recipe.source.in_(["gemini", "fallback"]))
-        .count()
-    )
-
-    manually_saved_recipes = (
-        db.query(Recipe)
-        .filter(Recipe.source == "manual")
-        .count()
-    )
-
     average_rating = db.query(func.avg(Recipe.rating)).scalar()
 
     return StatsOut(
         total_saved_recipes=total_saved_recipes,
-        ai_generated_recipes=ai_generated_recipes,
-        manually_saved_recipes=manually_saved_recipes,
         average_rating=round(float(average_rating), 2) if average_rating else None,
     )
